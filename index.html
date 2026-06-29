@@ -205,6 +205,12 @@
     .hero-vsl-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--secondary-container); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 8px 32px rgba(254,122,52,0.45); transition: transform 0.2s, box-shadow 0.2s; }
     .hero-vsl-btn:hover { transform: scale(1.08); box-shadow: 0 12px 40px rgba(254,122,52,0.6); }
     .hero-vsl-label { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.02em; }
+    .hero-contact-form { background: #fff; border-radius: var(--r-lg); padding: 24px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.12); margin-bottom: 16px; }
+    .hero-form-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--primary); margin: 0 0 4px; }
+    .hero-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .hero-contact-form input, .hero-contact-form select { width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0; border-radius: var(--r); font-size: 14px; font-family: var(--font-body); color: var(--on-surface); background: #fafafa; box-sizing: border-box; transition: border-color 0.2s; }
+    .hero-contact-form input:focus, .hero-contact-form select:focus { outline: none; border-color: var(--secondary-container); background: #fff; }
+    .hero-contact-form input::placeholder { color: #94a3b8; }
     .hero-img-badge { position: absolute; bottom: -16px; left: -16px; background: var(--secondary-container); border-radius: var(--r-lg); padding: 18px 22px; color: #fff; }
     .hero-img-badge .n { font-family: var(--font-display); font-size: 32px; font-weight: 700; line-height: 1; display: block; }
     .hero-img-badge .l { font-size: 12px; opacity: 0.88; margin-top: 4px; display: block; line-height: 1.4; }
@@ -482,6 +488,25 @@
       </div>
     </div>
     <div class="hero-img-wrap">
+      <form class="hero-contact-form" name="hero-enquiry" method="POST" action="https://formspree.io/f/xeojqkpv">
+        <p class="hero-form-title">Get a fast quote — takes 20 seconds</p>
+        <div class="hero-form-row">
+          <input type="text" name="name" placeholder="Your name" required>
+          <input type="text" name="suburb" placeholder="Suburb" required>
+        </div>
+        <input type="tel" name="mobile" placeholder="Mobile number" required>
+        <select name="job" required>
+          <option value="" disabled selected>Job to be done</option>
+          <option>Carpet cleaning</option>
+          <option>Couch / upholstery cleaning</option>
+          <option>Pet stain & odour removal</option>
+          <option>Bond / end-of-lease clean</option>
+          <option>Carpet + pest control combo</option>
+          <option>Spot & stain treatment</option>
+          <option>Not sure — need advice</option>
+        </select>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">Send Enquiry →</button>
+      </form>
       <div class="hero-vsl" id="hero-vsl">
         <img src="full/owner-with-van-hero.webp" alt="Quick Carpet Cleaners — owner-operated, northern Gold Coast" class="hero-vsl-thumb">
         <div class="hero-vsl-play">
