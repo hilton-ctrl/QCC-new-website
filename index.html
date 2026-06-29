@@ -211,6 +211,7 @@
     .hero-contact-form input, .hero-contact-form select { width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0; border-radius: var(--r); font-size: 14px; font-family: var(--font-body); color: var(--on-surface); background: #fafafa; box-sizing: border-box; transition: border-color 0.2s; }
     .hero-contact-form input:focus, .hero-contact-form select:focus { outline: none; border-color: var(--secondary-container); background: #fff; }
     .hero-contact-form input::placeholder { color: #94a3b8; }
+    .hero-form-success { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: var(--r); padding: 12px 14px; font-size: 14px; color: #166534; line-height: 1.5; }
     .hero-img-badge { position: absolute; bottom: -16px; left: -16px; background: var(--secondary-container); border-radius: var(--r-lg); padding: 18px 22px; color: #fff; }
     .hero-img-badge .n { font-family: var(--font-display); font-size: 32px; font-weight: 700; line-height: 1; display: block; }
     .hero-img-badge .l { font-size: 12px; opacity: 0.88; margin-top: 4px; display: block; line-height: 1.4; }
@@ -488,7 +489,10 @@
       </div>
     </div>
     <div class="hero-img-wrap">
-      <form class="hero-contact-form" name="hero-enquiry" method="POST" action="https://formspree.io/f/xeojqkpv">
+      <!-- ENQUIRY FORM
+           On submit: POSTs JSON to n8n webhook → Telnyx warm SMS → 30s wait → Retell AI outbound call
+           TO ACTIVATE: replace N8N_WEBHOOK_URL placeholder below with your live n8n webhook URL -->
+      <form class="hero-contact-form" id="hero-enquiry-form" novalidate>
         <p class="hero-form-title">Get a fast quote — takes 20 seconds</p>
         <div class="hero-form-row">
           <input type="text" name="name" placeholder="Your name" required>
@@ -505,7 +509,10 @@
           <option>Spot & stain treatment</option>
           <option>Not sure — need advice</option>
         </select>
-        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">Send Enquiry →</button>
+        <button type="submit" class="btn btn-primary" id="hero-enquiry-btn" style="width:100%;justify-content:center;">Send Enquiry →</button>
+        <div id="hero-enquiry-success" class="hero-form-success" style="display:none;">
+          ✅ <strong>Got it!</strong> We'll SMS you in the next 30 seconds, then give you a call. Please pick up — it's Mike!
+        </div>
       </form>
       <div class="hero-vsl" id="hero-vsl">
         <img src="full/owner-with-van-hero.webp" alt="Quick Carpet Cleaners — owner-operated, northern Gold Coast" class="hero-vsl-thumb">
@@ -1003,6 +1010,49 @@
 </div>
 
 <script>
+  // ---------------------------------------------------------------
+  // ENQUIRY FORM — n8n → Telnyx SMS → Retell AI outbound call
+  // ---------------------------------------------------------------
+  // STEP 1: Replace this URL with your live n8n webhook URL
+  const N8N_WEBHOOK_URL = 'https://YOUR_N8N_VPS_URL/webhook/qcc-enquiry';
+  // STEP 2: In n8n webhook node, expect these JSON fields:
+  //   { name, suburb, mobile, job }
+  // STEP 3: n8n workflow:
+  //   [Webhook] → [Telnyx SMS node] warm message to customer.mobile
+  //             → [Wait 30s]
+  //             → [HTTP Request] POST to https://api.retellai.com/v2/create-phone-call
+  //                  body: { from_number: "YOUR_TELNYX_NUMBER", to_number: customer.mobile, agent_id: "YOUR_RETELL_AGENT_ID" }
+  //                  header: Authorization: Bearer YOUR_RETELL_API_KEY
+  // ---------------------------------------------------------------
+
+  const enquiryForm = document.getElementById('hero-enquiry-form');
+  const enquiryBtn  = document.getElementById('hero-enquiry-btn');
+  const enquirySuccess = document.getElementById('hero-enquiry-success');
+
+  enquiryForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+      name:   enquiryForm.querySelector('[name="name"]').value.trim(),
+      suburb: enquiryForm.querySelector('[name="suburb"]').value.trim(),
+      mobile: enquiryForm.querySelector('[name="mobile"]').value.trim(),
+      job:    enquiryForm.querySelector('[name="job"]').value,
+    };
+    enquiryBtn.disabled = true;
+    enquiryBtn.textContent = 'Sending…';
+    try {
+      await fetch(N8N_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    } catch (_) {
+      // Fail silently — webhook not yet live
+    }
+    enquiryForm.querySelectorAll('input, select').forEach(el => el.disabled = true);
+    enquiryBtn.style.display = 'none';
+    enquirySuccess.style.display = 'block';
+  });
+
   // Nav hamburger
   const burger = document.getElementById('nav-burger');
   const drawer = document.getElementById('nav-drawer');
