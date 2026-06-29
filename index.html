@@ -187,7 +187,8 @@
     .hero-inner { display: grid; grid-template-columns: 55% 45%; align-items: center; gap: 48px; max-width: var(--container); margin: 0 auto; padding: 152px var(--gutter) 100px; min-height: 100vh; position: relative; z-index: 1; }
     .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(254,122,52,0.12); border: 1px solid rgba(254,122,52,0.28); color: var(--secondary-container); padding: 7px 16px; border-radius: var(--r-full); font-size: 13px; font-weight: 600; letter-spacing: 0.04em; margin-bottom: 20px; }
     .hero-eyebrow { font-family: var(--font-display); font-size: 18px; font-weight: 600; color: rgba(255,255,255,0.55); line-height: 1.4; margin-bottom: 16px; }
-    .hero-h1 { font-family: var(--font-display); font-size: 52px; font-weight: 700; line-height: 1.08; letter-spacing: -0.02em; color: #fff; margin-bottom: 20px; }
+    .hero-h1 { font-family: var(--font-display); font-size: 52px; font-weight: 700; line-height: 1.08; letter-spacing: -0.02em; color: #fff; margin-bottom: 12px; }
+    .hero-h2 { font-family: var(--font-display); font-size: 24px; font-weight: 600; line-height: 1.3; color: rgba(255,255,255,0.70); margin-bottom: 20px; }
     .hero-sub { font-size: 17px; line-height: 1.65; color: rgba(255,255,255,0.65); max-width: 500px; margin-bottom: 16px; }
     .hero-methods { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 36px; }
     .hero-method-tag { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); padding: 5px 12px; border-radius: var(--r-full); }
@@ -198,11 +199,17 @@
     .hero-stat-l { font-size: 12px; color: rgba(255,255,255,0.45); font-weight: 500; }
     .hero-img-wrap { position: relative; }
     .hero-img { width: 100%; border-radius: var(--r-xl); object-fit: cover; height: 520px; }
+    .hero-vsl { position: relative; width: 100%; height: 520px; border-radius: var(--r-xl); background: #0a1a30; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .hero-vsl-thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.55; border-radius: var(--r-xl); }
+    .hero-vsl-play { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .hero-vsl-btn { width: 80px; height: 80px; border-radius: 50%; background: var(--secondary-container); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 8px 32px rgba(254,122,52,0.45); transition: transform 0.2s, box-shadow 0.2s; }
+    .hero-vsl-btn:hover { transform: scale(1.08); box-shadow: 0 12px 40px rgba(254,122,52,0.6); }
+    .hero-vsl-label { font-family: var(--font-display); font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.02em; }
     .hero-img-badge { position: absolute; bottom: -16px; left: -16px; background: var(--secondary-container); border-radius: var(--r-lg); padding: 18px 22px; color: #fff; }
     .hero-img-badge .n { font-family: var(--font-display); font-size: 32px; font-weight: 700; line-height: 1; display: block; }
     .hero-img-badge .l { font-size: 12px; opacity: 0.88; margin-top: 4px; display: block; line-height: 1.4; }
-    @media (max-width: 960px) { .hero-inner { grid-template-columns: 1fr; padding-top: 112px; min-height: auto; gap: 48px; } .hero-h1 { font-size: 36px; } .hero-img { height: 320px; } }
-    @media (max-width: 480px) { .hero-h1 { font-size: 30px; } .hero-ctas { flex-direction: column; } .hero-ctas .btn { justify-content: center; } .hero-stats { gap: 20px; } }
+    @media (max-width: 960px) { .hero-inner { grid-template-columns: 1fr; padding-top: 112px; min-height: auto; gap: 48px; } .hero-h1 { font-size: 36px; } .hero-h2 { font-size: 20px; } .hero-vsl { height: 320px; } }
+    @media (max-width: 480px) { .hero-h1 { font-size: 30px; } .hero-h2 { font-size: 18px; } .hero-ctas { flex-direction: column; } .hero-ctas .btn { justify-content: center; } .hero-stats { gap: 20px; } }
 
     /* TRUST BAR */
     .trust-bar { background: var(--surface); border-bottom: 1px solid var(--outline-variant); }
@@ -440,7 +447,8 @@
         97 Five-Star Reviews — Northern Gold Coast
       </div>
       <p class="hero-eyebrow">The carpet looks okay — so why does the room still feel stale?</p>
-      <h1 class="hero-h1">Carpet Cleaning on the Northern Gold Coast — Four Named Methods. One Owner-Operator.</h1>
+      <h1 class="hero-h1">Carpet Cleaning on the Northern Gold Coast</h1>
+      <h2 class="hero-h2">Four Named Methods. One Owner-Operator.</h2>
       <p class="hero-sub">Bond-Back Carpet Clean · 45-Minute Couch Reset · Pet Reset Protocol · Stain-Matched Method. Honest assessment first — we tell you what's possible before we quote.</p>
       <div class="hero-methods">
         <span class="hero-method-tag">Upper Coomera · Coomera · Sanctuary Cove</span>
@@ -474,7 +482,15 @@
       </div>
     </div>
     <div class="hero-img-wrap">
-      <img src="full/owner-with-van-hero.webp" alt="Quick Carpet Cleaners — owner-operated, northern Gold Coast" class="hero-img">
+      <div class="hero-vsl" id="hero-vsl">
+        <img src="full/owner-with-van-hero.webp" alt="Quick Carpet Cleaners — owner-operated, northern Gold Coast" class="hero-vsl-thumb">
+        <div class="hero-vsl-play">
+          <button class="hero-vsl-btn" aria-label="Play video">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
+          <span class="hero-vsl-label">Watch — Why Mike & Jack are different</span>
+        </div>
+      </div>
       <div class="hero-img-badge">
         <span class="n">97<span style="font-size:18px">+</span></span>
         <span class="l">Five-Star<br>Google Reviews</span>
@@ -748,7 +764,7 @@
         </div>
         <div class="objection-item">
           <button class="objection-q"><span>Do you cover my suburb?</span><svg class="obj-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-          <div class="objection-a"><div class="objection-a-inner"><p><strong>Tier 1</strong> (priority service, fastest response): Upper Coomera, Coomera, Sanctuary Cove, Hope Island, Paradise Point, Ormeau, Oxenford, Pacific Pines, Pimpama.<br><br><strong>Tier 2</strong> (standard service area): Helensvale, Coombabah, Jacobs Well, Wongawallan.<br><br>Outside these but near them? Give us a call — the wider northern Gold Coast is often covered.</p></div></div>
+          <div class="objection-a"><div class="objection-a-inner"><p><strong>Tier 1</strong> (priority service, fastest response): <a href="/carpet-cleaning-upper-coomera/">Upper Coomera</a>, <a href="/carpet-cleaning-coomera/">Coomera</a>, <a href="/carpet-cleaning-sanctuary-cove/">Sanctuary Cove</a>, <a href="/carpet-cleaning-hope-island/">Hope Island</a>, Paradise Point, <a href="/carpet-cleaning-ormeau/">Ormeau</a>, <a href="/carpet-cleaning-oxenford/">Oxenford</a>, <a href="/carpet-cleaning-pacific-pines/">Pacific Pines</a>, <a href="/carpet-cleaning-pimpama/">Pimpama</a>.<br><br><strong>Tier 2</strong> (standard service area): <a href="/carpet-cleaning-helensvale/">Helensvale</a>, Coombabah, Jacobs Well, Wongawallan.<br><br>Outside these but near them? Give us a call — the wider northern Gold Coast is often covered.</p></div></div>
         </div>
       </div>
     </div>
