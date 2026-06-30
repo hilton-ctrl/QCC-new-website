@@ -392,7 +392,7 @@
   const hideTip=()=>{tipWrap.style.transition='opacity 0.4s';tipWrap.style.opacity='0';setTimeout(()=>{tipWrap.classList.add('ai-hidden');tipVisible=false;},400);};
   setTimeout(hideTip,5000);
   aiBubble.addEventListener('click',()=>{if(tipVisible){hideTip();}else{tipWrap.classList.remove('ai-hidden');tipWrap.style.opacity='1';tipVisible=true;}});
-  const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}}),{threshold:0.10});
+  const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}}),{threshold:0});
   document.querySelectorAll('.fu').forEach(el=>io.observe(el));
 </script>
 </body>

@@ -943,7 +943,7 @@
 
   const io = new IntersectionObserver((entries) => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); io.unobserve(e.target); } });
-  }, { threshold: 0.10 });
+  }, { threshold:0 });
   document.querySelectorAll('.fu').forEach(el => io.observe(el));
 </script>
 </body>
