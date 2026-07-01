@@ -407,8 +407,24 @@
     .ai-bubble { width: 58px; height: 58px; background: var(--primary-container); border-radius: var(--r-full); border: 2px solid rgba(255,255,255,0.10); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-float); transition: transform 0.2s, box-shadow 0.2s; position: relative; }
     .ai-bubble:hover { transform: scale(1.08); }
     .ai-bubble svg { color: #fff; }
-    .ai-dot { position: absolute; top: 2px; right: 2px; width: 12px; height: 12px; background: var(--secondary-container); border-radius: var(--r-full); border: 2px solid var(--primary-container); animation: pulse 2.2s infinite; }
-    @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.82); } }
+    .ai-dot { position: absolute; top: 2px; right: 2px; width: 12px; height: 12px; background: var(--secondary-container); border-radius: var(--r-full); border: 2px solid var(--primary-container); animation: dot-pulse 2.2s infinite; }
+    @keyframes dot-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.82); } }
+    /* connecting ring */
+    .ai-bubble.connecting { animation: ring-spin 1s linear infinite; border-color: var(--accent); }
+    @keyframes ring-spin { to { transform: rotate(360deg); } }
+    /* active call ring */
+    .ai-bubble.active { border-color: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,0.25), var(--shadow-float); animation: active-ring 1.4s ease-in-out infinite; }
+    @keyframes active-ring { 0%,100% { box-shadow: 0 0 0 4px rgba(34,197,94,0.25), var(--shadow-float); } 50% { box-shadow: 0 0 0 10px rgba(34,197,94,0.08), var(--shadow-float); } }
+    /* call panel */
+    .ai-call-panel { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow-float); padding: 16px 18px; min-width: 200px; display: flex; flex-direction: column; gap: 12px; animation: tipIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
+    .ai-call-status { font-size: 13px; font-weight: 600; color: var(--primary); text-align: center; }
+    .ai-call-status span { font-weight: 400; color: #666; display: block; font-size: 12px; margin-top: 2px; }
+    .ai-call-actions { display: flex; gap: 8px; justify-content: center; }
+    .ai-call-actions button { border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+    .ai-call-actions button:hover { opacity: 0.85; }
+    .btn-mute { background: #f3f4f6; color: #374151; }
+    .btn-mute.muted { background: #fef3c7; color: #92400e; }
+    .btn-end { background: #ef4444; color: #fff; }
     .ai-hidden { display: none !important; }
     @media (max-width: 768px) { .ai-widget { bottom: 76px; right: 14px; } }
   </style>
@@ -490,8 +506,7 @@
     </div>
     <div class="hero-img-wrap">
       <!-- ENQUIRY FORM
-           On submit: POSTs JSON to n8n webhook → Telnyx warm SMS → 30s wait → Retell AI outbound call
-           TO ACTIVATE: replace N8N_WEBHOOK_URL placeholder below with your live n8n webhook URL -->
+           On submit: POSTs JSON straight to the Vercel proxy, which triggers a Retell AI outbound call -->
       <form class="hero-contact-form" id="hero-enquiry-form" novalidate>
         <p class="hero-form-title">Get a fast quote — takes 20 seconds</p>
         <div class="hero-form-row">
@@ -996,37 +1011,46 @@
 </a>
 
 <!-- AI RECEPTIONIST WIDGET  z-index:1010 -->
-<div class="ai-widget">
+<!-- Retell AI Web SDK (ESM via esm.sh — self-contained, no peer dep issues) -->
+<script type="module">
+  import { RetellWebClient } from 'https://esm.sh/retell-client-js-sdk';
+  window.RetellWebClient = RetellWebClient;
+</script>
+
+<div class="ai-widget" id="ai-widget">
+  <!-- Tooltip (idle only) -->
   <div class="ai-tip-wrap" id="ai-tip-wrap">
     <div class="ai-tip">
       <strong>Hi, I'm Mike's AI assistant!</strong><br>
-      Speak to us now, book a job, or find out more.
+      Tap the mic to speak with us now.
     </div>
   </div>
-  <button class="ai-bubble" id="ai-bubble" aria-label="Open AI assistant">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-    <span class="ai-dot"></span>
+  <!-- Active call panel -->
+  <div class="ai-call-panel ai-hidden" id="ai-call-panel">
+    <div class="ai-call-status" id="ai-call-status">
+      Connecting…<span id="ai-call-sub">Please wait</span>
+    </div>
+    <div class="ai-call-actions">
+      <button class="btn-mute" id="btn-mute">🎙 Mute</button>
+      <button class="btn-end" id="btn-end">End Call</button>
+    </div>
+  </div>
+  <!-- Mic bubble -->
+  <button class="ai-bubble" id="ai-bubble" aria-label="Talk to Mike's AI assistant">
+    <!-- mic icon -->
+    <svg id="ai-icon-mic" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    <!-- spinner (connecting) -->
+    <svg id="ai-icon-spin" class="ai-hidden" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
+    <span class="ai-dot" id="ai-dot"></span>
   </button>
 </div>
 
 <script>
-  // ---------------------------------------------------------------
-  // ENQUIRY FORM — n8n → Telnyx SMS → Retell AI outbound call
-  // ---------------------------------------------------------------
-  // STEP 1: Replace this URL with your live n8n webhook URL
-  const N8N_WEBHOOK_URL = 'https://YOUR_N8N_VPS_URL/webhook/qcc-enquiry';
-  // STEP 2: In n8n webhook node, expect these JSON fields:
-  //   { name, suburb, mobile, job }
-  // STEP 3: n8n workflow:
-  //   [Webhook] → [Telnyx SMS node] warm message to customer.mobile
-  //             → [Wait 30s]
-  //             → [HTTP Request] POST to https://api.retellai.com/v2/create-phone-call
-  //                  body: { from_number: "YOUR_TELNYX_NUMBER", to_number: customer.mobile, agent_id: "YOUR_RETELL_AGENT_ID" }
-  //                  header: Authorization: Bearer YOUR_RETELL_API_KEY
-  // ---------------------------------------------------------------
+  // ENQUIRY FORM — submits to Vercel proxy → Retell outbound call to customer
+  const OUTBOUND_URL = 'https://qcc-retell-proxy.vercel.app/create-outbound-call';
 
-  const enquiryForm = document.getElementById('hero-enquiry-form');
-  const enquiryBtn  = document.getElementById('hero-enquiry-btn');
+  const enquiryForm    = document.getElementById('hero-enquiry-form');
+  const enquiryBtn     = document.getElementById('hero-enquiry-btn');
   const enquirySuccess = document.getElementById('hero-enquiry-success');
 
   enquiryForm.addEventListener('submit', async (e) => {
@@ -1038,15 +1062,15 @@
       job:    enquiryForm.querySelector('[name="job"]').value,
     };
     enquiryBtn.disabled = true;
-    enquiryBtn.textContent = 'Sending…';
+    enquiryBtn.textContent = 'Calling you now…';
     try {
-      await fetch(N8N_WEBHOOK_URL, {
+      await fetch(OUTBOUND_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
     } catch (_) {
-      // Fail silently — webhook not yet live
+      // fail silently — show success regardless
     }
     enquiryForm.querySelectorAll('input, select').forEach(el => el.disabled = true);
     enquiryBtn.style.display = 'none';
@@ -1079,20 +1103,107 @@
     });
   });
 
-  // AI widget
-  const tipWrap = document.getElementById('ai-tip-wrap');
-  const aiBubble = document.getElementById('ai-bubble');
-  let tipVisible = true;
+  // ---------------------------------------------------------------
+  // RETELL AI VOICE WIDGET
+  // Token proxy: set RETELL_PROXY_URL to your deployed Vercel URL
+  // ---------------------------------------------------------------
+  const RETELL_PROXY_URL = 'https://qcc-retell-proxy.vercel.app/create-web-call';
+
+  const tipWrap    = document.getElementById('ai-tip-wrap');
+  const callPanel  = document.getElementById('ai-call-panel');
+  const callStatus = document.getElementById('ai-call-status');
+  const callSub    = document.getElementById('ai-call-sub');
+  const aiBubble   = document.getElementById('ai-bubble');
+  const iconMic    = document.getElementById('ai-icon-mic');
+  const iconSpin   = document.getElementById('ai-icon-spin');
+  const aiDot      = document.getElementById('ai-dot');
+  const btnMute    = document.getElementById('btn-mute');
+  const btnEnd     = document.getElementById('btn-end');
+
+  let retellClient = null;
+  let callState    = 'idle'; // idle | connecting | active
+  let isMuted      = false;
+
   const hideTip = () => {
-    tipWrap.style.transition = 'opacity 0.4s';
+    tipWrap.style.transition = 'opacity 0.3s';
     tipWrap.style.opacity = '0';
-    setTimeout(() => { tipWrap.classList.add('ai-hidden'); tipVisible = false; }, 400);
+    setTimeout(() => tipWrap.classList.add('ai-hidden'), 300);
   };
   setTimeout(hideTip, 5000);
-  aiBubble.addEventListener('click', () => {
-    if (tipVisible) { hideTip(); } else {
-      tipWrap.classList.remove('ai-hidden'); tipWrap.style.opacity = '1'; tipVisible = true;
+
+  function setUiState(state) {
+    callState = state;
+    aiBubble.classList.remove('connecting', 'active');
+    iconMic.classList.add('ai-hidden');
+    iconSpin.classList.add('ai-hidden');
+    aiDot.classList.remove('ai-hidden');
+
+    if (state === 'idle') {
+      iconMic.classList.remove('ai-hidden');
+      callPanel.classList.add('ai-hidden');
+      tipWrap.classList.remove('ai-hidden');
+      tipWrap.style.opacity = '1';
+      isMuted = false;
+      btnMute.textContent = '🎙 Mute';
+      btnMute.classList.remove('muted');
+    } else if (state === 'connecting') {
+      iconSpin.classList.remove('ai-hidden');
+      aiDot.classList.add('ai-hidden');
+      aiBubble.classList.add('connecting');
+      tipWrap.classList.add('ai-hidden');
+      callPanel.classList.remove('ai-hidden');
+      callStatus.firstChild.textContent = 'Connecting…';
+      callSub.textContent = 'Please wait';
+    } else if (state === 'active') {
+      iconMic.classList.remove('ai-hidden');
+      aiBubble.classList.add('active');
+      callStatus.firstChild.textContent = 'Call in progress';
+      callSub.textContent = 'Mike\'s AI assistant is listening';
     }
+  }
+
+  async function startCall() {
+    if (callState !== 'idle') return;
+    hideTip();
+    setUiState('connecting');
+
+    try {
+      retellClient = new window.RetellWebClient();
+
+      retellClient.on('call_started', () => setUiState('active'));
+      retellClient.on('call_ended',   () => { retellClient = null; setUiState('idle'); });
+      retellClient.on('error',        () => { retellClient = null; setUiState('idle'); });
+
+      const res = await fetch(RETELL_PROXY_URL, { method: 'POST' });
+      if (!res.ok) throw new Error('Token fetch failed');
+      const { access_token } = await res.json();
+
+      await retellClient.startCall({ accessToken: access_token });
+    } catch (err) {
+      console.error('Retell widget error:', err);
+      retellClient = null;
+      setUiState('idle');
+    }
+  }
+
+  function endCall() {
+    if (retellClient) retellClient.stopCall();
+    retellClient = null;
+    setUiState('idle');
+  }
+
+  aiBubble.addEventListener('click', () => {
+    if (callState === 'idle') startCall();
+  });
+
+  btnEnd.addEventListener('click', endCall);
+
+  btnMute.addEventListener('click', () => {
+    if (!retellClient || callState !== 'active') return;
+    isMuted = !isMuted;
+    retellClient.mute(isMuted);
+    btnMute.textContent = isMuted ? '🔇 Unmute' : '🎙 Mute';
+    btnMute.classList.toggle('muted', isMuted);
   });
 
   // Scroll animations
