@@ -250,6 +250,20 @@
     .head-fake-image img { width: 100%; height: 420px; object-fit: cover; display: block; }
     @media (max-width: 860px) { .head-fake-inner { grid-template-columns: 1fr; gap: 48px; } .head-fake-image img { height: 280px; } .head-fake-content h2 { font-size: 28px; } }
 
+    /* SELF-SELECT — segment routing */
+    .self-select { background: var(--surface); }
+    .select-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .select-tile { display: flex; gap: 16px; align-items: flex-start; background: var(--background); border: 1px solid var(--outline-variant); border-radius: var(--r-lg); padding: 26px; transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; }
+    .select-tile:hover { border-color: rgba(254,122,52,0.45); transform: translateY(-3px); box-shadow: var(--shadow-card); }
+    .select-icon { font-size: 26px; line-height: 1; flex-shrink: 0; }
+    .select-tile strong { display: block; font-family: var(--font-display); font-size: 17px; font-weight: 700; color: var(--primary); line-height: 1.3; margin-bottom: 8px; }
+    .select-tile p { font-size: 14px; line-height: 1.6; color: var(--on-surface-variant); margin-bottom: 10px; }
+    .select-more { font-size: 13px; font-weight: 700; color: var(--secondary-container); display: inline-flex; align-items: center; gap: 6px; transition: gap 0.2s; }
+    .select-tile:hover .select-more { gap: 10px; }
+    .select-none { margin-top: 24px; font-size: 15px; color: var(--on-surface-variant); }
+    .select-none a { color: var(--secondary-container); font-weight: 600; }
+    @media (max-width: 760px) { .select-grid { grid-template-columns: 1fr; } }
+
     /* MECHANISM — THE WALK-THROUGH GUARANTEE CLEAN */
     .mechanism { background: var(--primary-container); position: relative; overflow: hidden; }
     .mechanism::before { content: ''; position: absolute; top: -160px; left: -160px; width: 520px; height: 520px; background: radial-gradient(circle, rgba(254,122,52,0.07) 0%, transparent 70%); pointer-events: none; }
@@ -609,6 +623,52 @@
         <p>This is the operator who does. And we'll tell you honestly what's possible <em>before</em> we quote.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- SELF-SELECT -->
+<section class="self-select" id="start-here">
+  <div class="container">
+    <div class="section-head fu">
+      <span class="label-caps">Start here</span>
+      <h2>So — what brought you here today?</h2>
+      <p>Pick whichever one sounds like your place. It'll take you straight to how we handle that particular job.</p>
+    </div>
+    <div class="select-grid">
+      <a href="/pet-stain-odour-carpet-cleaning/" class="select-tile fu">
+        <span class="select-icon">🐕</span>
+        <div>
+          <strong>A pet accident that won't stop smelling</strong>
+          <p>Enzyme treatment breaks it down in the pile — not perfume over the top of it. And if it's soaked through to the underlay, you'll hear that from us before we start.</p>
+          <span class="select-more">Pet Reset Protocol →</span>
+        </div>
+      </a>
+      <a href="/vacate-exit-carpet-cleaning/" class="select-tile fu d1">
+        <span class="select-icon">🏠</span>
+        <div>
+          <strong>An inspection coming up, with the bond on the line</strong>
+          <p>An itemised receipt in the format property managers look for. Nine years, more than 4,000 cleans, and not one carpet ever flagged.</p>
+          <span class="select-more">Bond-Back Carpet Clean →</span>
+        </div>
+      </a>
+      <a href="/advanced-spot-stain-treatment/" class="select-tile fu d1">
+        <span class="select-icon">🍷</span>
+        <div>
+          <strong>A stain everyone told you was permanent</strong>
+          <p>Wine, coffee, rust, blood, ink, make-up. We identify the stain first, then match the chemistry — generic detergent sets several of these for good.</p>
+          <span class="select-more">Stain-Matched Method →</span>
+        </div>
+      </a>
+      <a href="/couch-upholstery-cleaning/" class="select-tile fu d2">
+        <span class="select-icon">🛋️</span>
+        <div>
+          <strong>A couch that's seen better days</strong>
+          <p>Fabric sofas, mattresses and dining chairs. Book it into the same visit as your carpet if you'd rather have it all done at once.</p>
+          <span class="select-more">45-Minute Couch Reset →</span>
+        </div>
+      </a>
+    </div>
+    <p class="select-none fu">None of those quite it? That's common — call <a href="tel:0484312966">0484 312 966</a> and describe it. We'll tell you straight whether it's something we can fix.</p>
   </div>
 </section>
 
