@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This is the website build for **Quick Carpet Cleaners (QCC)**, a Gold Coast-based residential carpet and upholstery cleaning business. Owners: **Mike & Jack**. The website is a conversion-focused local service site with an AI receptionist widget and a structured SEO content network.
+This is the website build for **Quick Carpet Cleaners (QCC)**, a Gold Coast-based residential carpet and upholstery cleaning business. Owners: **Michael & Jack**. The website is a conversion-focused local service site with an AI receptionist widget and a structured SEO content network.
 
 The build uses **HTML/CSS/JS** (no framework assumed). All design decisions are governed by `Design.md`.
 
@@ -11,12 +11,12 @@ The build uses **HTML/CSS/JS** (no framework assumed). All design decisions are 
 ## Business Context
 
 - **Business name:** Quick Carpet Cleaners
-- **Owners:** Mike & Jack
+- **Owners:** Michael & Jack
 - **Location:** Gold Coast, Queensland, Australia
-- **Primary phone CTA:** "Call Mike & Jack Now"
+- **Primary phone CTA:** "Call Michael & Jack Now"
 - **Services:** Carpet cleaning, couch/upholstery cleaning, pet stain & odour removal, vacate/exit/bond cleaning, carpet + pest control, advanced spot & stain treatment
 - **Brand narrative:** "The Professional Neighbor" — tradie-business aesthetic, not a corporate franchise
-- **AI receptionist:** Widget branded as "Mike's AI assistant" — Deep Navy bubble, bottom-right, high z-index
+- **AI receptionist:** Widget branded as "Michael's AI assistant" — Deep Navy bubble, bottom-right, high z-index
 
 ---
 
@@ -113,11 +113,11 @@ Professional carpet cleaning for Queensland homes, rentals, and pet-affected pro
 ### Mobile Sticky Call Bar
 - Pinned bottom, z-index 1000
 - Solid Warm Orange background
-- "Call Mike & Jack Now" — bold white text + phone icon
+- "Call Michael & Jack Now" — bold white text + phone icon
 
 ### AI Receptionist Widget
 - Deep Navy bubble, bottom-right, z-index above sticky bar
-- Tooltip on load: "Hi, I'm Mike's AI assistant!"
+- Tooltip on load: "Hi, I'm Michael's AI assistant!"
 - Pill/high-roundedness shape (24px+)
 
 ### Trust Signals row

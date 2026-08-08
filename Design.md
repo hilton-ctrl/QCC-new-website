@@ -179,10 +179,10 @@ Simple white cards with a 5-star rating (Orange) at the top. Use italicized Body
 Clean, flat style with a simple + / - or Chevron icon. The header uses Navy H3-sized text. Only one item should be open at a time to keep the layout tidy.
 
 ### Mobile Sticky Call Bar
-Pinned to the bottom (Z-index: 1000). Solid Warm Orange background. Features a clear Phone Icon and "Call Mike & Jack Now" in bold white text.
+Pinned to the bottom (Z-index: 1000). Solid Warm Orange background. Features a clear Phone Icon and "Call Michael & Jack Now" in bold white text.
 
 ### AI Receptionist Widget
-Deep Navy bubble floating in the bottom-right. Must sit at a higher Z-index than the sticky bar. Includes a small white "typing" indicator or tooltip ("Hi, I'm Mike's AI assistant!") on initial load.
+Deep Navy bubble floating in the bottom-right. Must sit at a higher Z-index than the sticky bar. Includes a small white "typing" indicator or tooltip ("Hi, I'm Michael's AI assistant!") on initial load.
 
 ### Trust Signals
 A horizontal row of clean, single-color (Navy or Orange) icons. Focus on simplicity—"Google 5-Star," "Fully Insured," and "Local Family Business." No heavy backgrounds; let the icons breathe.

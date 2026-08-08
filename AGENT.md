@@ -43,7 +43,7 @@
 - **Primary button:** Orange `#fe7a34` background, white text, 12px radius
 - **Secondary button:** 2px Navy border, Navy text, transparent background
 - **Cards:** White background, 16px radius, `0 4px 20px rgba(0,0,0,0.05)` shadow; on hover lift -2px Y and increase shadow
-- **Mobile sticky call bar:** Orange background, z-index 1000, "Call Mike & Jack Now"
+- **Mobile sticky call bar:** Orange background, z-index 1000, "Call Michael & Jack Now"
 - **AI widget:** Navy bubble, bottom-right, z-index above sticky bar, 24px+ radius
 - **Accordion:** One item open at a time, Chevron toggle, Navy H3 text
 - **Trust signals:** Single-colour Navy or Orange icons, no heavy backgrounds
