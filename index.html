@@ -14,7 +14,7 @@
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "Quick Carpet Cleaners",
-    "description": "Owner-operated carpet cleaning on the northern Gold Coast. Four named methods: Bond-Back Carpet Clean, 45-Minute Couch Reset, Pet Reset Protocol, Stain-Matched Method.",
+    "description": "Owner-operated carpet cleaning on the northern Gold Coast. Every job runs as the Walk-Through Guarantee Clean: a locked quote before we arrive, a stain-matched clean done by the owners, and a walk-through sign-off before we leave. Four named methods: Bond-Back Carpet Clean, 45-Minute Couch Reset, Pet Reset Protocol, Stain-Matched Method.",
     "url": "https://qccgoldcoast.com.au",
     "telephone": "0484312966",
     "email": "office@quick-carpet-cleaners.com.au",
@@ -245,6 +245,25 @@
     .head-fake-image { border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-float); }
     .head-fake-image img { width: 100%; height: 420px; object-fit: cover; display: block; }
     @media (max-width: 860px) { .head-fake-inner { grid-template-columns: 1fr; gap: 48px; } .head-fake-image img { height: 280px; } .head-fake-content h2 { font-size: 28px; } }
+
+    /* MECHANISM — THE WALK-THROUGH GUARANTEE CLEAN */
+    .mechanism { background: var(--primary-container); position: relative; overflow: hidden; }
+    .mechanism::before { content: ''; position: absolute; top: -160px; left: -160px; width: 520px; height: 520px; background: radial-gradient(circle, rgba(254,122,52,0.07) 0%, transparent 70%); pointer-events: none; }
+    .mechanism-head { max-width: 760px; margin-bottom: 56px; position: relative; }
+    .mechanism-head h2 { font-family: var(--font-display); font-size: 36px; font-weight: 700; color: #fff; line-height: 1.15; letter-spacing: -0.01em; margin: 12px 0 18px; }
+    .mechanism-head p { font-size: 17px; line-height: 1.7; color: rgba(255,255,255,0.65); }
+    .mechanism-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; position: relative; }
+    .mech-step { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); border-radius: var(--r-lg); padding: 32px; }
+    .mech-step-n { display: block; font-family: var(--font-display); font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--secondary-container); margin-bottom: 14px; }
+    .mech-step h3 { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: #fff; line-height: 1.25; margin-bottom: 12px; }
+    .mech-step p { font-size: 15px; line-height: 1.7; color: rgba(255,255,255,0.62); margin-bottom: 12px; }
+    .mech-step p:last-child { margin-bottom: 0; }
+    .mech-step a { color: var(--secondary-container); font-weight: 600; }
+    .mech-step a:hover { text-decoration: underline; }
+    .mechanism-close { position: relative; margin-top: 40px; padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.10); display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .mechanism-close p { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: #fff; line-height: 1.4; max-width: 640px; }
+    .mechanism-close em { font-style: normal; color: var(--secondary-container); }
+    @media (max-width: 900px) { .mechanism-steps { grid-template-columns: 1fr; } .mechanism-head h2 { font-size: 28px; } .mechanism-close p { font-size: 18px; } }
 
     /* FOUR METHODS */
     .methods { background: var(--background); }
@@ -604,13 +623,48 @@
   </div>
 </section>
 
+<!-- MECHANISM — THE WALK-THROUGH GUARANTEE CLEAN -->
+<section class="mechanism" id="how-it-works">
+  <div class="container">
+    <div class="mechanism-head fu">
+      <span class="label-caps">How every job runs</span>
+      <h2>The Walk-Through Guarantee Clean</h2>
+      <p>Three things go wrong when people hire a carpet cleaner. The price changes once the van's in the driveway. The wrong treatment gets used on the wrong stain. And nobody checks the result with you before it drives off again. We built the job around removing all three.</p>
+    </div>
+    <div class="mechanism-steps">
+      <div class="mech-step fu">
+        <span class="mech-step-n">Step One</span>
+        <h3>The Locked Quote</h3>
+        <p>You get a fixed price before we arrive. The number on the quote is the number on the invoice — no call-out fee, no extras discovered halfway through the lounge room.</p>
+        <p>If the job turns out genuinely bigger than described, we stop and show you. You decide before we carry on.</p>
+      </div>
+      <div class="mech-step fu d1">
+        <span class="mech-step-n">Step Two</span>
+        <h3>The Stain-Matched Clean — done by the owners</h3>
+        <p>Michael or Jack inspects every stain and matches the treatment to it. Pet urine, bond inspections, red wine and upholstery each need different chemistry. Generic detergent permanently sets several of them.</p>
+        <p><a href="#methods">See the four named methods below ↓</a></p>
+      </div>
+      <div class="mech-step fu d2">
+        <span class="mech-step-n">Step Three</span>
+        <h3>The Walk-Through Sign-Off</h3>
+        <p>Before we pack a single hose, you walk every room with us. Anything you're not happy with gets dealt with while the gear is still in your hallway.</p>
+        <p>The job isn't finished when we say so. It's finished when you say so.</p>
+      </div>
+    </div>
+    <div class="mechanism-close fu">
+      <p>Nine years. More than 4,000 cleans. And not one carpet <em>ever</em> flagged by a property manager.</p>
+      <a href="tel:0484312966" class="btn btn-primary">Call 0484 312 966</a>
+    </div>
+  </div>
+</section>
+
 <!-- FOUR METHODS -->
 <section class="methods" id="methods">
   <div class="container">
     <div class="section-head fu">
-      <span class="label-caps">Four named methods</span>
+      <span class="label-caps">Step two, up close</span>
       <h2>Four named methods for four different jobs.</h2>
-      <p>Most carpet cleaners offer "carpet cleaning" as a single vague service. Same chemistry, same equipment, same approach — whether you're a tenant facing inspection, a homeowner with pet odour, or a renter with a red wine stain on cream wool. That's why generic carpet cleaning fails on specific problems.</p>
+      <p>This is what the stain-matched clean actually means. Most carpet cleaners offer "carpet cleaning" as a single vague service — same chemistry, same equipment, same approach, whether you're a tenant facing inspection, a homeowner with pet odour, or a renter with a red wine stain on cream wool. That's why generic carpet cleaning fails on specific problems.</p>
     </div>
     <div class="methods-grid">
       <a href="/vacate-exit-carpet-cleaning/" class="method-card fu">
