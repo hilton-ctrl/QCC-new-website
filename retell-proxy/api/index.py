@@ -72,7 +72,7 @@ async def create_outbound_call(form: EnquiryForm):
     sms_body = (
         f"Hi {form.name}, thanks for your enquiry with Quick Carpet Cleaners! "
         f"You'll receive a call from us in the next few seconds. "
-        f"Please pick up — it's Mike's team calling about your {form.job}. 🧹"
+        f"Please pick up — it's Michael's team calling about your {form.job}. 🧹"
     )
 
     async with httpx.AsyncClient() as client:
