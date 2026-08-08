@@ -45,7 +45,7 @@
       {
         "@type": "Question",
         "name": "Can I get a quote before booking?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes — call 0484 312 966 or send a description and photos via the Talk to Us widget. We give you a fixed quote before any commitment." }
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes — call 0484 312 966, or tap Michael's AI assistant in the bottom corner and talk it through. We give you a fixed quote before any commitment. If photos would help, email them to office@quick-carpet-cleaners.com.au." }
       },
       {
         "@type": "Question",
@@ -403,6 +403,7 @@
     .final-cta-sub { font-size: 18px; color: rgba(255,255,255,0.62); max-width: 500px; margin: 0 auto 40px; line-height: 1.65; position: relative; }
     .cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; position: relative; }
     .final-cta-close { font-size: 17px; color: rgba(255,255,255,0.55); max-width: 560px; margin: 48px auto 0; line-height: 1.75; font-style: italic; position: relative; }
+    .cta-alt { position: relative; font-size: 15px; line-height: 1.65; color: rgba(255,255,255,0.55); max-width: 520px; margin: 22px auto 0; }
     @media (max-width: 560px) { .final-cta h2 { font-size: 30px; } .cta-btns .btn { width: 100%; justify-content: center; } }
 
     /* FOOTER */
@@ -1020,7 +1021,7 @@
         </div>
         <div class="faq-item">
           <button class="faq-q"><span>Can I get a quote before booking?</span><svg class="faq-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-          <div class="faq-a"><div class="faq-a-inner"><p>Yes — call 0484 312 966 or send a description (and photos if relevant) via the Talk to Us widget. We give you a fixed quote before any commitment.</p></div></div>
+          <div class="faq-a"><div class="faq-a-inner"><p>Yes — call 0484 312 966, or tap Michael's AI assistant in the bottom corner and talk it through. We give you a fixed quote before any commitment. If photos would help, email them to office@quick-carpet-cleaners.com.au.</p></div></div>
         </div>
         <div class="faq-item">
           <button class="faq-q"><span>Are you licensed and insured?</span><svg class="faq-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
@@ -1032,7 +1033,7 @@
         </div>
         <div class="faq-item">
           <button class="faq-q"><span>Can I book online?</span><svg class="faq-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-          <div class="faq-a"><div class="faq-a-inner"><p>Yes — the Talk to Us widget supports messaging, photos, and booking 24/7. Or email office@quick-carpet-cleaners.com.au. For same-day jobs, calling is fastest.</p></div></div>
+          <div class="faq-a"><div class="faq-a-inner"><p>Tap Michael's AI assistant in the bottom corner any hour and talk through what you need, or email office@quick-carpet-cleaners.com.au. For same-day jobs, calling 0484 312 966 is still the fastest way.</p></div></div>
         </div>
         <div class="faq-item">
           <button class="faq-q"><span>Do you bring all your own equipment?</span><svg class="faq-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
@@ -1053,8 +1054,13 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.95 9.61 19.79 19.79 0 01.88 2.94 2 2 0 012.86 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.09 8.69a16 16 0 006.29 6.29l1.05-1.06a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
         Call 0484 312 966
       </a>
+      <button type="button" class="btn btn-ghost" data-ai-call>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        Talk to our AI assistant
+      </button>
       <a href="mailto:office@quick-carpet-cleaners.com.au" class="btn btn-ghost">Email Us</a>
     </div>
+    <p class="cta-alt fu d2">Not up for phoning a stranger yet? Tap the assistant and ask it what a job like yours costs, how soon we could get there, or whether that stain is worth treating. It's there any hour.</p>
     <p class="final-cta-close fu d3">Picture the room two days from now. Visitors arriving. Rental inspection done. The carpet's not catching your eye anymore — it's just doing its job. The stale smell you'd stopped noticing is gone. The room feels properly fresh again. That's what Quick Carpet Cleaners is built for.</p>
   </div>
 </section>
@@ -1317,6 +1323,16 @@
 
   aiBubble.addEventListener('click', () => {
     if (callState === 'idle') startCall();
+  });
+
+  // Any element marked [data-ai-call] starts the assistant — lets CTA buttons
+  // elsewhere on the page offer the widget as an alternative to phoning.
+  document.querySelectorAll('[data-ai-call]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (callState !== 'idle') return;
+      startCall();
+    });
   });
 
   btnEnd.addEventListener('click', endCall);
