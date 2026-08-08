@@ -162,3 +162,51 @@ Professional carpet cleaning for Queensland homes, rentals, and pet-affected pro
 - Pest control licensing/chemical claims require client verification before publishing
 - Keep AI widget z-index strictly above the mobile sticky call bar
 - All copy must use the site-wide n-gram phrases consistently in titles, intros, headings, and anchor text
+
+### Counted claims must stay in sync with the page
+
+Some headings assert a number that the page itself has to satisfy. If the
+underlying content changes, the heading is no longer true — on a site whose
+entire positioning is now honesty, that matters more than usual.
+
+| Claim | Location | Must match |
+|---|---|---|
+| "The six things people ask before they book." | Homepage, Quick Questions H2 | the number of `.faq-item` blocks in `section.faq-quick` (currently 6) |
+| "97 five-star reviews" | Homepage hero badge, hero stat, trust H2, trust card, form proof strip | the real Google review count — update everywhere at once |
+| "4,000+ cleans" / "nine years" | Homepage hero stat, mechanism close, About, form proof strip; bond, faqs, pet-stain-rental pages | client-confirmed figures (see below) |
+
+### Client-verified facts (`qcc=questions.rtf`, Aug 2026 — supersedes earlier drafts)
+
+- **Nine years** of operation (since 2017) — *not* 8 years / 2018
+- **4,000+ cleans** — *not* the 1,465 figure in the older drafts
+- **Zero carpets ever flagged by a property manager** — the substitute proof that replaced the guarantees
+- **97 five-star Google reviews**
+- Fresh Home Reset offer: **$330** (VSL/landing copy only — not yet reconciled with the live pricing page)
+
+### No return-visit guarantees — ever
+
+The client explicitly declined all of these. Do not reintroduce them in any
+page, draft, or schema block:
+
+- ❌ free re-clean of property-manager-flagged areas
+- ❌ 14-day stain re-treat
+- ❌ "we'll come back at no extra charge"
+
+His reasoning: if a carpet doesn't come up the first time it is damaged rather
+than dirty, so a return visit cannot fix it. Use the zero-flagged record as the
+risk-reversal substitute instead.
+
+**Pet-odour copy** must keep the backing/underlay caveat — cleaning cannot reach
+urine below the carpet without lifting it. Never claim odour removal that
+requires reaching the underlay.
+
+### The mechanism
+
+Every job runs as **The Walk-Through Guarantee Clean** (name client-approved):
+Locked Quote → Stain-Matched Clean → Walk-Through Sign-Off. The **Four Named
+Methods are Step Two up close**, not a competing mechanism — keep them nested.
+The sign-off is same-visit only; it is not a promise to return.
+
+Superseded drafts in `qcc-sales-letter/drafts/` (`*-v2.md`,
+`carpet-cleaning-VSL-script.md`) and `qcc=questions.md` still carry the old
+figures and guarantees. They are dated archives — do not copy from them.
