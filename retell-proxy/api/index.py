@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import asyncio, httpx, os
@@ -21,6 +21,112 @@ app.add_middleware(
 
 AGENT_ID   = "agent_a3272ed73666ea736352b563bc"
 FROM_NUMBER = "+61488862843"
+
+# ── Lead alerts ──────────────────────────────────────────────────────────────
+#
+# TEMPORARY (11 Sept 2026): lead alerts go to Michael by EMAIL, not SMS.
+#
+# The only number on the Retell account that could send an SMS is
+# +61488862843, which is Odette's "Baby Bump" line. Alerting Michael from a
+# pregnancy-clinic number confuses two separate businesses, so SMS alerting is
+# switched off until QCC's own Telnyx numbers clear verification.
+#
+# TO REVERT once the new numbers exist:
+#   1. Set ALERT_CHANNEL = "sms" below and set ALERT_SMS_FROM to the new number.
+#   2. In Retell, point the three alert tools back at send_sms (or leave them on
+#      the /notify webhook — it honours ALERT_CHANNEL either way).
+#   3. Change FROM_NUMBER above to the new number so the callback caller ID and
+#      the customer's heads-up SMS stop showing the Baby Bump line too.
+
+ALERT_CHANNEL  = "email"                              # "email" | "sms" | "both"
+ALERT_EMAIL    = "office@quick-carpet-cleaners.com.au"
+ALERT_SMS_TO   = "+61484312966"                       # Michael's mobile
+ALERT_SMS_FROM = FROM_NUMBER                          # replace with QCC's own number on revert
+
+# Resend needs a verified domain to send FROM quick-carpet-cleaners.com.au.
+# Until that DNS record exists, the default below still delivers to office@.
+MAIL_FROM = os.environ.get("MAIL_FROM", "QCC Website <onboarding@resend.dev>")
+
+
+async def send_alert_email(subject: str, body: str) -> bool:
+    """Email Michael a lead alert. Returns True on success.
+
+    Never raises: a failed alert must not take down the call path with it.
+    """
+    api_key = os.environ.get("RESEND_API_KEY")
+    if not api_key:
+        print("ALERT EMAIL SKIPPED - RESEND_API_KEY not configured")
+        print(f"UNSENT ALERT: {subject}\n{body}")
+        return False
+
+    try:
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": MAIL_FROM,
+                    "to": [ALERT_EMAIL],
+                    "subject": subject,
+                    "text": body,
+                },
+                timeout=10,
+            )
+    except Exception as exc:
+        print(f"ALERT EMAIL FAILED - {exc!r}")
+        print(f"UNSENT ALERT: {subject}\n{body}")
+        return False
+
+    if r.status_code >= 300:
+        print(f"ALERT EMAIL FAILED - {r.status_code} {r.text}")
+        print(f"UNSENT ALERT: {subject}\n{body}")
+        return False
+
+    return True
+
+
+async def send_alert_sms(body: str) -> bool:
+    """Text Michael a lead alert. Returns True on success. Never raises."""
+    telnyx_key = os.environ.get("TELNYX_API_KEY")
+    if not telnyx_key:
+        print("ALERT SMS SKIPPED - TELNYX_API_KEY not configured")
+        return False
+
+    try:
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                "https://api.telnyx.com/v2/messages",
+                headers={
+                    "Authorization": f"Bearer {telnyx_key}",
+                    "Content-Type": "application/json",
+                },
+                json={"from": ALERT_SMS_FROM, "to": ALERT_SMS_TO, "text": body},
+                timeout=10,
+            )
+    except Exception as exc:
+        print(f"ALERT SMS FAILED - {exc!r}")
+        return False
+
+    if r.status_code >= 300:
+        print(f"ALERT SMS FAILED - {r.status_code} {r.text}")
+        return False
+
+    return True
+
+
+async def send_alert(subject: str, body: str) -> bool:
+    """Dispatch a lead alert on whichever channel(s) ALERT_CHANNEL selects."""
+    sent = False
+    if ALERT_CHANNEL in ("email", "both"):
+        sent = await send_alert_email(subject, body) or sent
+    if ALERT_CHANNEL in ("sms", "both"):
+        # SMS has no subject line, so fold it into the body.
+        sent = await send_alert_sms(f"{subject}\n{body}") or sent
+    return sent
+
 
 # ── Web call (voice widget) ──────────────────────────────────────────────────
 
@@ -47,6 +153,72 @@ async def create_web_call():
     return r.json()
 
 
+# ── Agent-triggered alerts (Retell custom functions) ─────────────────────────
+#
+# Replaces the three send_sms tools (send_quote_request, send_callback_request,
+# create_booking_request), which were bound to sms_sender "current_number" and
+# so sent nothing at all on a web call. Retell POSTs {"call": {...}, "args": {...}}.
+
+FIELD_LABELS = [
+    ("name",           "Name"),
+    ("mobile",         "Mobile"),
+    ("email",          "Email"),
+    ("service",        "Service"),
+    ("suburb",         "Suburb"),
+    ("address",        "Address"),
+    ("job_size",       "Job size"),
+    ("preferred_time", "Preferred day/time"),
+    ("reason",         "Reason"),
+    ("notes",          "Notes"),
+]
+
+REQUEST_TITLES = {
+    "quote":    "QUOTE REQUEST",
+    "callback": "CALLBACK REQUEST",
+    "booking":  "BOOKING REQUEST",
+}
+
+
+@app.post("/notify")
+async def notify(request: Request):
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="invalid JSON")
+
+    # Retell nests the function arguments under "args"; tolerate a flat body too.
+    args = payload.get("args") if isinstance(payload.get("args"), dict) else payload
+    call = payload.get("call") if isinstance(payload.get("call"), dict) else {}
+
+    kind  = str(args.get("request_type", "quote")).lower()
+    title = REQUEST_TITLES.get(kind, "ENQUIRY")
+
+    lines = [f"QCC {title} - from the website AI receptionist", ""]
+    for key, label in FIELD_LABELS:
+        value = args.get(key)
+        if value not in (None, "", "unknown"):
+            lines.append(f"{label}: {value}")
+
+    call_id = call.get("call_id")
+    if call_id:
+        lines += ["", f"Retell call: {call_id}"]
+
+    body    = "\n".join(lines)
+    who     = args.get("name") or "Website enquiry"
+    subject = f"QCC {title}: {who}"
+
+    delivered = await send_alert(subject, body)
+
+    # Always report success to the agent. It has already told the customer the
+    # details are going through, and a delivery failure is logged above with the
+    # full lead attached - the customer should not be dragged into that.
+    return {
+        "success": True,
+        "delivered": delivered,
+        "message": "Details sent to Michael and Jack.",
+    }
+
+
 # ── Outbound call (enquiry form callback) ───────────────────────────────────
 
 class EnquiryForm(BaseModel):
@@ -69,14 +241,34 @@ async def create_outbound_call(form: EnquiryForm):
     if mobile.startswith("0"):
         mobile = "+61" + mobile[1:]
 
-    sms_body = (
-        f"Hi {form.name}, thanks for your enquiry with Quick Carpet Cleaners! "
-        f"You'll receive a call from us in the next few seconds. "
-        f"Please pick up — it's Michael's team calling about your {form.job}. 🧹"
+    # Alert Michael FIRST, before the SMS and the 10s sleep. This function may
+    # be killed by the Vercel execution cap before the call is placed; sending
+    # the alert up front means the lead survives even when the callback doesn't.
+    await send_alert(
+        f"QCC WEBSITE ENQUIRY: {form.name}",
+        "\n".join([
+            "QCC WEBSITE ENQUIRY - from the homepage form",
+            "",
+            f"Name: {form.name}",
+            f"Mobile: {mobile}",
+            f"Suburb: {form.suburb}",
+            f"Job: {form.job}",
+            "",
+            "An AI callback to this customer has been triggered.",
+        ]),
     )
 
     async with httpx.AsyncClient() as client:
-        # 1. Send SMS via Telnyx
+        # 1. Heads-up SMS to the CUSTOMER.
+        #    NOTE: still sent from the Baby Bump number, so the customer sees a
+        #    text about carpet cleaning from an unrelated number. Same for the
+        #    caller ID on the call below. Both are fixed by changing FROM_NUMBER
+        #    once QCC's own Telnyx number is verified.
+        sms_body = (
+            f"Hi {form.name}, thanks for your enquiry with Quick Carpet Cleaners! "
+            f"You'll receive a call from us in the next few seconds. "
+            f"Please pick up — it's Michael's team calling about your {form.job}. 🧹"
+        )
         await client.post(
             "https://api.telnyx.com/v2/messages",
             headers={
@@ -106,6 +298,7 @@ async def create_outbound_call(form: EnquiryForm):
                 "to_number":   mobile,
                 "agent_id":    AGENT_ID,
                 "retell_llm_dynamic_variables": {
+                    "session_type":    "outbound",
                     "customer_name":   form.name,
                     "customer_suburb": form.suburb,
                     "job_type":        form.job,
