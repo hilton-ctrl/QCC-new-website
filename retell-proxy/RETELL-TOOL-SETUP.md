@@ -115,21 +115,31 @@ Leave `transfer_to_human` and `end_call` exactly as they are.
 The proxy needs one new variable before any email will send:
 
 ```
-RESEND_API_KEY = re_...
+SMTP2GO_API_KEY = api-xxxxxxxxxxxxxxxx
 ```
 
-Optionally, once `quick-carpet-cleaners.com.au` is verified in Resend:
+Get it from the SMTP2GO dashboard under **Sending → API Keys**. It needs the
+*send email* permission.
+
+`quick-carpet-cleaners.com.au` must be a **verified sender domain** in the
+SMTP2GO account, because the alert is sent from `office@` at that domain. If it
+is not verified yet, either verify it in SMTP2GO, or point the sender at a domain
+that already is, using:
 
 ```
-MAIL_FROM = QCC Website <office@quick-carpet-cleaners.com.au>
+MAIL_FROM = some-verified-address@your-verified-domain.com
 ```
 
-Without `MAIL_FROM` the alert still arrives at `office@`, just from Resend's
-shared `onboarding@resend.dev` sender.
+The recipient is always `office@quick-carpet-cleaners.com.au` regardless — only
+the *sending* address is affected.
 
-**Without `RESEND_API_KEY` nothing breaks** — the alert is logged to the Vercel
+**Without `SMTP2GO_API_KEY` nothing breaks** — the alert is logged to the Vercel
 function log with the full lead attached, and the call continues normally. But
 nobody is notified, so this key is the one thing that makes the feature real.
+
+Note the proxy checks SMTP2GO's `data.succeeded` field, not just the HTTP status:
+SMTP2GO answers 200 with `succeeded: 0` when a recipient is rejected, so a status
+check alone would log a silent failure as a success.
 
 ## Reverting to SMS on Monday
 
@@ -137,8 +147,10 @@ In `api/index.py`:
 
 1. `ALERT_CHANNEL = "sms"` (or `"both"`).
 2. `ALERT_SMS_FROM` → QCC's new Telnyx number.
-3. `FROM_NUMBER` → the new number as well, so the callback caller ID and the
-   customer's heads-up SMS stop showing the Baby Bump line.
+3. `FROM_NUMBER` → the new number as well, so the callback's caller ID stops
+   showing the Baby Bump line. (The customer-facing heads-up SMS was removed
+   entirely on 11 Sept — don't reinstate it without also updating the hero
+   proof strip in `index.html`, which no longer promises a text.)
 
 The Retell tools do **not** need changing — `/notify` honours `ALERT_CHANNEL`
 whichever way it is set.

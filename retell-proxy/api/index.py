@@ -47,35 +47,38 @@ ALERT_EMAIL    = "office@quick-carpet-cleaners.com.au"
 ALERT_SMS_TO   = "+61484312966"                       # Michael's mobile
 ALERT_SMS_FROM = FROM_NUMBER                          # replace with QCC's own number on revert
 
-# Resend needs a verified domain to send FROM quick-carpet-cleaners.com.au.
-# Until that DNS record exists, the default below still delivers to office@.
-MAIL_FROM = os.environ.get("MAIL_FROM", "QCC Website <onboarding@resend.dev>")
+# Sent via SMTP2GO's HTTP API (not raw SMTP — an HTTP call survives serverless
+# far better than holding an SMTP conversation open).
+#
+# The sending domain must be verified in the SMTP2GO account, otherwise the send
+# is rejected. quick-carpet-cleaners.com.au is both sender and recipient here.
+MAIL_FROM = os.environ.get("MAIL_FROM", "office@quick-carpet-cleaners.com.au")
 
 
 async def send_alert_email(subject: str, body: str) -> bool:
-    """Email Michael a lead alert. Returns True on success.
+    """Email Michael a lead alert. Returns True only if SMTP2GO accepted it.
 
     Never raises: a failed alert must not take down the call path with it.
     """
-    api_key = os.environ.get("RESEND_API_KEY")
+    api_key = os.environ.get("SMTP2GO_API_KEY")
     if not api_key:
-        print("ALERT EMAIL SKIPPED - RESEND_API_KEY not configured")
+        print("ALERT EMAIL SKIPPED - SMTP2GO_API_KEY not configured")
         print(f"UNSENT ALERT: {subject}\n{body}")
         return False
 
     try:
         async with httpx.AsyncClient() as client:
             r = await client.post(
-                "https://api.resend.com/emails",
+                "https://api.smtp2go.com/v3/email/send",
                 headers={
-                    "Authorization": f"Bearer {api_key}",
+                    "X-Smtp2go-Api-Key": api_key,
                     "Content-Type": "application/json",
                 },
                 json={
-                    "from": MAIL_FROM,
-                    "to": [ALERT_EMAIL],
-                    "subject": subject,
-                    "text": body,
+                    "sender":    MAIL_FROM,
+                    "to":        [ALERT_EMAIL],
+                    "subject":   subject,
+                    "text_body": body,
                 },
                 timeout=10,
             )
@@ -84,7 +87,16 @@ async def send_alert_email(subject: str, body: str) -> bool:
         print(f"UNSENT ALERT: {subject}\n{body}")
         return False
 
-    if r.status_code >= 300:
+    # SMTP2GO returns 200 with data.succeeded == 0 for a rejected recipient, and
+    # 400 for a bad key. Checking the status alone would report a silent failure
+    # as a success, so check the body too.
+    succeeded = 0
+    try:
+        succeeded = (r.json().get("data") or {}).get("succeeded", 0)
+    except Exception:
+        pass
+
+    if r.status_code != 200 or not succeeded:
         print(f"ALERT EMAIL FAILED - {r.status_code} {r.text}")
         print(f"UNSENT ALERT: {subject}\n{body}")
         return False
