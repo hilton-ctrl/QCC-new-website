@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import asyncio, httpx, os
+import httpx, os
 
 app = FastAPI()
 
@@ -35,8 +35,12 @@ FROM_NUMBER = "+61488862843"
 #   1. Set ALERT_CHANNEL = "sms" below and set ALERT_SMS_FROM to the new number.
 #   2. In Retell, point the three alert tools back at send_sms (or leave them on
 #      the /notify webhook — it honours ALERT_CHANNEL either way).
-#   3. Change FROM_NUMBER above to the new number so the callback caller ID and
-#      the customer's heads-up SMS stop showing the Baby Bump line too.
+#   3. Change FROM_NUMBER above to the new number, so the callback's caller ID
+#      stops showing the Baby Bump line. Until then the customer sees an
+#      unrelated number on their screen; the agent's opening line and the
+#      direct number it reads out are the only mitigation.
+#   4. Assign the new number as the qcc agent's INBOUND number, so a customer
+#      who misses the callback and rings back does not reach Baby Bump.
 
 ALERT_CHANNEL  = "email"                              # "email" | "sms" | "both"
 ALERT_EMAIL    = "office@quick-carpet-cleaners.com.au"
@@ -229,12 +233,11 @@ class EnquiryForm(BaseModel):
 
 @app.post("/create-outbound-call")
 async def create_outbound_call(form: EnquiryForm):
-    retell_key  = os.environ.get("RETELL_API_KEY")
-    telnyx_key  = os.environ.get("TELNYX_API_KEY")
+    retell_key = os.environ.get("RETELL_API_KEY")
     if not retell_key:
         raise HTTPException(status_code=500, detail="RETELL_API_KEY not configured")
-    if not telnyx_key:
-        raise HTTPException(status_code=500, detail="TELNYX_API_KEY not configured")
+    # TELNYX_API_KEY is no longer required here — this endpoint sends no SMS.
+    # It is still used by send_alert_sms() when ALERT_CHANNEL is switched back.
 
     # Normalise mobile: strip spaces, ensure +61 format
     mobile = form.mobile.strip().replace(" ", "")
@@ -258,35 +261,20 @@ async def create_outbound_call(form: EnquiryForm):
         ]),
     )
 
+    # The customer used to get a heads-up SMS here, followed by a 10s sleep so
+    # they saw it before the phone rang. Both are removed (11 Sept 2026):
+    #
+    #   - The text went out from the Baby Bump number, so a carpet-cleaning
+    #     customer received an unsolicited SMS from an unrelated business before
+    #     any context existed. Worse than no text at all.
+    #   - The 10s sleep likely exceeded the Vercel execution cap, killing the
+    #     function after the SMS but before the call was ever placed.
+    #
+    # The call still identifies itself in its opening line, and the agent reads
+    # out QCC's real number, so the customer is not left guessing.
+
     async with httpx.AsyncClient() as client:
-        # 1. Heads-up SMS to the CUSTOMER.
-        #    NOTE: still sent from the Baby Bump number, so the customer sees a
-        #    text about carpet cleaning from an unrelated number. Same for the
-        #    caller ID on the call below. Both are fixed by changing FROM_NUMBER
-        #    once QCC's own Telnyx number is verified.
-        sms_body = (
-            f"Hi {form.name}, thanks for your enquiry with Quick Carpet Cleaners! "
-            f"You'll receive a call from us in the next few seconds. "
-            f"Please pick up — it's Michael's team calling about your {form.job}. 🧹"
-        )
-        await client.post(
-            "https://api.telnyx.com/v2/messages",
-            headers={
-                "Authorization": f"Bearer {telnyx_key}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "from": FROM_NUMBER,
-                "to":   mobile,
-                "text": sms_body,
-            },
-            timeout=10,
-        )
-
-        # 2. Wait 10 seconds so customer sees the SMS before the call lands
-        await asyncio.sleep(10)
-
-        # 3. Trigger Retell outbound call
+        # Trigger Retell outbound call
         r = await client.post(
             "https://api.retellai.com/v2/create-phone-call",
             headers={
@@ -311,4 +299,4 @@ async def create_outbound_call(form: EnquiryForm):
     if r.status_code != 201:
         raise HTTPException(status_code=r.status_code, detail=r.text)
 
-    return {"status": "sms sent and call initiated"}
+    return {"status": "call initiated"}
