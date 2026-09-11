@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import httpx, os
+import httpx, os, re, json, datetime
 
 app = FastAPI()
 
@@ -239,6 +239,183 @@ async def notify(request: Request):
         "delivered": delivered,
         "message": "Details sent to Michael and Jack.",
     }
+
+
+# ── Google Sheet row (Retell post-call webhook) ─────────────────────────────
+#
+# Retell calls this with event "call_analyzed" once a call has ended and its
+# transcript has been summarised. That timing matters: the enquiry summary and
+# the outcome do not exist mid-call, so a row written when the agent fires a
+# booking tool could not contain them.
+#
+# Writes one row per completed call to the "QCC leads" sheet, via an Apps Script
+# web app (see google-sheets/apps-script.gs).
+#
+# APPEND-ONLY. This never edits an existing row. Columns H, I and J are filled
+# with a best guess, but the moment Michael or Jack correct one, nothing will
+# overwrite it. Retell may retry a webhook, so the Apps Script de-duplicates on
+# the call id in column M.
+
+BRISBANE = datetime.timezone(datetime.timedelta(hours=10))  # QLD has no DST
+
+EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
+
+
+def _split_name(full):
+    """Sheet wants Name and Surname; every source gives one field."""
+    parts = (full or "").strip().split()
+    if not parts:
+        return "", ""
+    return parts[0], " ".join(parts[1:])
+
+
+def _au_mobile(n):
+    n = (n or "").strip().replace(" ", "")
+    return "0" + n[3:] if n.startswith("+61") else n
+
+
+def _build_row(call):
+    dyn = call.get("retell_llm_dynamic_variables") or {}
+    analysis = call.get("call_analysis") or {}
+    custom = analysis.get("custom_analysis_data") or {}
+
+    # Everything the agent said and did, as one searchable blob. Used only for
+    # best-guess fields — anything load-bearing comes from a structured field.
+    blob = json.dumps(call.get("transcript_with_tool_calls") or
+                      call.get("transcript") or "", default=str)
+
+    name = custom.get("name") or dyn.get("customer_name") or ""
+    first, last = _split_name(name)
+
+    phone = (dyn.get("customer_mobile") or call.get("to_number")
+             or call.get("from_number") or "")
+    if call.get("direction") == "inbound":
+        phone = call.get("from_number") or phone
+
+    email = custom.get("email") or dyn.get("customer_email") or ""
+    if not email:
+        found = EMAIL_RE.search(blob.replace("\\u0040", "@"))
+        # Ignore QCC's own address turning up in the agent's script.
+        if found and "quick-carpet-cleaners" not in found.group(0):
+            email = found.group(0)
+
+    area = (custom.get("address") or custom.get("suburb")
+            or dyn.get("customer_suburb") or "")
+    job = custom.get("service") or dyn.get("job_type") or ""
+
+    summary = analysis.get("call_summary") or ""
+
+    # Called back: did QCC ring them, or did they come to us?
+    if call.get("call_type") == "web_call":
+        called_back = "n"
+    else:
+        called_back = "y" if call.get("direction") == "outbound" else "n"
+
+    # Outcome, best guess, most specific signal first.
+    reason = (call.get("disconnection_reason") or "").lower()
+    if call.get("in_voicemail"):
+        outcome = "Voicemail"
+    elif "dial_no_answer" in reason or "dial_busy" in reason:
+        outcome = "No answer"
+    elif "dial_failed" in reason or "error" in reason:
+        outcome = "Call failed"
+    elif "create_booking_request" in blob:
+        outcome = "Booking requested"
+    elif "send_quote_request" in blob:
+        outcome = "Quote requested"
+    elif "send_callback_request" in blob:
+        outcome = "Callback requested"
+    elif "transfer_to_human" in blob:
+        outcome = "Transferred"
+    elif analysis.get("call_successful") is False:
+        outcome = "Not successful"
+    elif summary:
+        outcome = "Enquiry only"
+    else:
+        outcome = ""
+
+    # Delegated to: a guess from who the agent named. Expect Michael to correct it.
+    has_jack, has_michael = "Jack" in blob, "Michael" in blob
+    if has_jack and not has_michael:
+        delegated = "Jack"
+    elif has_michael or has_jack:
+        delegated = "Michael"
+    else:
+        delegated = ""
+
+    ts = call.get("start_timestamp") or call.get("end_timestamp")
+    if ts:
+        when = datetime.datetime.fromtimestamp(ts / 1000, BRISBANE)
+    else:
+        when = datetime.datetime.now(BRISBANE)
+
+    return [
+        first,                      # A Name
+        last,                       # B Surname
+        _au_mobile(phone),          # C Phone no
+        email,                      # D email
+        area,                       # E Area/address
+        job,                        # F Job details
+        summary,                    # G Enquiry summary
+        called_back,                # H Called back y/n
+        outcome,                    # I Outcome
+        delegated,                  # J Delegated to
+        when.strftime("%H:%M"),     # K Time
+        when.strftime("%d/%m/%Y"),  # L Date
+    ]
+
+
+async def append_sheet_row(call):
+    """Append one row to the QCC leads sheet. Never raises."""
+    url = os.environ.get("SHEETS_WEBHOOK_URL")
+    secret = os.environ.get("SHEETS_SHARED_SECRET")
+    if not url or not secret:
+        print("SHEET ROW SKIPPED - SHEETS_WEBHOOK_URL/SHEETS_SHARED_SECRET not configured")
+        return False
+
+    try:
+        row = _build_row(call)
+    except Exception as exc:
+        print(f"SHEET ROW BUILD FAILED - {exc!r}")
+        return False
+
+    try:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
+            # Apps Script /exec answers with a 302 to script.googleusercontent.com,
+            # so redirects must be followed or every write looks like a failure.
+            r = await client.post(
+                url,
+                json={"secret": secret, "call_id": call.get("call_id", ""), "row": row},
+                timeout=15,
+            )
+    except Exception as exc:
+        print(f"SHEET ROW FAILED - {exc!r} | row={row}")
+        return False
+
+    if r.status_code >= 300 or '"ok":true' not in r.text.replace(" ", ""):
+        print(f"SHEET ROW FAILED - {r.status_code} {r.text[:300]} | row={row}")
+        return False
+
+    return True
+
+
+@app.post("/retell-webhook")
+async def retell_webhook(request: Request):
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="invalid JSON")
+
+    event = payload.get("event")
+    call = payload.get("call") or {}
+
+    # Only call_analyzed carries the summary. call_started and call_ended are
+    # acknowledged and ignored, or Retell will treat them as failures and retry.
+    if event != "call_analyzed":
+        return {"received": True, "ignored": event}
+
+    written = await append_sheet_row(call)
+    return {"received": True, "sheet_row_written": written}
 
 
 # ── Outbound call (enquiry form callback) ───────────────────────────────────
