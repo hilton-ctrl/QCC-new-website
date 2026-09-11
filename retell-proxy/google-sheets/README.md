@@ -24,6 +24,30 @@ Every call produces a row — the website voice widget, and the outbound callbac
 the enquiry form triggers, including calls that go to voicemail or are never
 answered.
 
+## Post Call Extraction (required)
+
+**Without this, every caller field stays blank.** A web-widget call carries no
+dynamic variables and no phone number anywhere on the call object — the name,
+number and address the caller speaks exist only in the transcript. Retell's post
+call extraction is what turns them into structured fields.
+
+Configured 11 Sept 2026 on the agent → **Post Call Extraction**, all type Text:
+
+| Field | Extracts |
+|---|---|
+| `name` | Customer's full name, first and last |
+| `mobile` | Contact number, digits, Australian 04… format |
+| `email` | Email address, explicitly not QCC's own |
+| `address` | Street number and name only, no suburb |
+| `suburb` | Gold Coast suburb only |
+| `service` | What they want done, plus job size |
+
+The field names must match exactly — the proxy reads them by these keys. Adding
+a field here with a different name silently does nothing.
+
+The three Retell defaults (Call Summary, Call Successful, User Sentiment) stay;
+Call Summary feeds column G.
+
 ## Columns
 
 | Col | Field | Source |
