@@ -1,8 +1,7 @@
 /**
  * QCC leads — Google Sheet writer
  *
- * Paste this into the "QCC leads" spreadsheet via Extensions → Apps Script,
- * set SHARED_SECRET below, then Deploy → New deployment → Web app:
+ * Set SHARED_SECRET below, then Deploy → New deployment → Web app:
  *
  *   Execute as:      Me
  *   Who has access:  Anyone
@@ -13,11 +12,22 @@
  *
  * Copy the resulting /exec URL into the Vercel project as SHEETS_WEBHOOK_URL.
  *
+ * Works in a STANDALONE Apps Script project as well as one bound to the sheet:
+ * it opens the spreadsheet by ID rather than relying on getActiveSpreadsheet(),
+ * which returns null in a standalone project.
+ *
  * Append-only by design. This script never edits an existing row, so anything
  * Michael or Jack type into the sheet is safe from being overwritten.
  */
 
-const SHARED_SECRET = 'REPLACE_WITH_A_LONG_RANDOM_STRING';
+const SHARED_SECRET = '3vbPHoF4tW5dYjqeYxuW_JQFxTzxYIS7EujjlUB-2tY';
+
+// The "QCC leads" spreadsheet.
+const SPREADSHEET_ID = '1HKRx69Ydy5_SMbvz-oGFoBXJ09CkLwQQ5RSMR89YV4g';
+
+function getSheet() {
+  return SpreadsheetApp.openById(SPREADSHEET_ID).getSheets()[0];
+}
 
 // Column M holds the Retell call ID. It is the de-duplication key — Retell
 // retries webhooks, and without this a flaky delivery would create duplicate
@@ -44,7 +54,7 @@ function doPost(e) {
       return json({ ok: false, error: 'row must be an array' });
     }
 
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    const sheet = getSheet();
     const callId = body.call_id || '';
 
     if (callId && findCallId(sheet, callId)) {
@@ -84,7 +94,7 @@ function json(obj) {
 
 /** Run this once from the editor to confirm the script can write to the sheet. */
 function testAppend() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  const sheet = getSheet();
   sheet.appendRow(['TEST', 'Row', '', '', '', '', 'Delete this row',
                    '', '', '', '', '', 'TEST-' + Date.now()]);
 }

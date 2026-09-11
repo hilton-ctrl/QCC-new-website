@@ -53,9 +53,10 @@ becomes two rows for the same call.
 
 ### 1. Apps Script
 
-1. Open the sheet → **Extensions → Apps Script**
-2. Delete the placeholder, paste `apps-script.gs`
-3. Set `SHARED_SECRET` to the value held in Vercel as `SHEETS_SHARED_SECRET`
+1. Open the Apps Script project (either a standalone one, or the sheet's own via
+   **Extensions → Apps Script** — the script works in both)
+2. Delete the placeholder `function myFunction() {}`, paste `apps-script.gs`
+3. `SHARED_SECRET` and `SPREADSHEET_ID` are already filled in
 4. **Deploy → New deployment → Web app**
    - Execute as: **Me**
    - Who has access: **Anyone**
@@ -67,7 +68,13 @@ becomes two rows for the same call.
 it: without a matching secret the script writes nothing.
 
 To sanity-check before wiring anything up, run `testAppend` from the Apps Script
-editor. It writes one obvious test row for you to delete.
+editor. It writes one obvious test row for you to delete. The first run prompts
+for authorisation — the script needs permission to open the spreadsheet.
+
+**Note on standalone projects.** The script opens the sheet with
+`SpreadsheetApp.openById(...)`, not `getActiveSpreadsheet()`. The latter returns
+null in a standalone project (one created from script.google.com rather than
+from the sheet's Extensions menu), which would fail on every write.
 
 ### 2. Vercel
 
