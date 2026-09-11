@@ -118,20 +118,31 @@ The proxy needs one new variable before any email will send:
 SMTP2GO_API_KEY = api-xxxxxxxxxxxxxxxx
 ```
 
-Get it from the SMTP2GO dashboard under **Sending → API Keys**. It needs the
-*send email* permission.
+Created 11 Sept 2026 in the SMTP2GO account (Hilton Holder), described
+**"QCC website lead alerts"**, scoped to `/email/send` only, default rate limit.
+Copy it from **Sending → API Keys** using the Copy button.
 
-`quick-carpet-cleaners.com.au` must be a **verified sender domain** in the
-SMTP2GO account, because the alert is sent from `office@` at that domain. If it
-is not verified yet, either verify it in SMTP2GO, or point the sender at a domain
-that already is, using:
+### Sender domain
+
+`quick-carpet-cleaners.com.au` is **not** a verified sender in this SMTP2GO
+account. Only these are:
+
+| Domain | Status |
+|---|---|
+| designrepublic.net.au | Verified |
+| nevermissacall.net.au | Verified |
+
+So the alert sends from `qcc-website@designrepublic.net.au` and is delivered to
+`office@quick-carpet-cleaners.com.au`. Only the sender differs. Sending from an
+unverified domain would be rejected — and rejected as HTTP 200 with
+`succeeded: 0`, which is exactly why the proxy checks that field.
+
+Free plan has 3 of 5 verified sender slots left. To make the alert self-sent
+later, verify `quick-carpet-cleaners.com.au` in SMTP2GO and set:
 
 ```
-MAIL_FROM = some-verified-address@your-verified-domain.com
+MAIL_FROM = office@quick-carpet-cleaners.com.au
 ```
-
-The recipient is always `office@quick-carpet-cleaners.com.au` regardless — only
-the *sending* address is affected.
 
 **Without `SMTP2GO_API_KEY` nothing breaks** — the alert is logged to the Vercel
 function log with the full lead attached, and the call continues normally. But

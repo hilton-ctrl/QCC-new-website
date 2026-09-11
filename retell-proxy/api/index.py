@@ -50,9 +50,15 @@ ALERT_SMS_FROM = FROM_NUMBER                          # replace with QCC's own n
 # Sent via SMTP2GO's HTTP API (not raw SMTP — an HTTP call survives serverless
 # far better than holding an SMTP conversation open).
 #
-# The sending domain must be verified in the SMTP2GO account, otherwise the send
-# is rejected. quick-carpet-cleaners.com.au is both sender and recipient here.
-MAIL_FROM = os.environ.get("MAIL_FROM", "office@quick-carpet-cleaners.com.au")
+# The sending domain must be verified in SMTP2GO or the send is rejected — and
+# quick-carpet-cleaners.com.au is NOT verified there (checked 11 Sept 2026; only
+# designrepublic.net.au and nevermissacall.net.au are). So the alert is sent from
+# Design Republic's domain and delivered to QCC. Only the sender differs; the
+# recipient is always ALERT_EMAIL.
+#
+# If quick-carpet-cleaners.com.au is verified later, set MAIL_FROM to an address
+# at that domain and the alert becomes self-sent.
+MAIL_FROM = os.environ.get("MAIL_FROM", "qcc-website@designrepublic.net.au")
 
 
 async def send_alert_email(subject: str, body: str) -> bool:
