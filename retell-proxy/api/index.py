@@ -287,10 +287,14 @@ def _build_row(call):
     name = custom.get("name") or dyn.get("customer_name") or ""
     first, last = _split_name(name)
 
-    phone = (dyn.get("customer_mobile") or call.get("to_number")
-             or call.get("from_number") or "")
-    if call.get("direction") == "inbound":
-        phone = call.get("from_number") or phone
+    # On a web-widget call there is no phone number anywhere on the call object,
+    # so the only source is what the caller said — which reaches us through
+    # Retell's post-call extraction. Prefer it, then the dialled number.
+    phone = (custom.get("mobile") or custom.get("phone")
+             or dyn.get("customer_mobile") or "")
+    if not phone:
+        phone = (call.get("from_number") if call.get("direction") == "inbound"
+                 else call.get("to_number")) or call.get("from_number") or ""
 
     email = custom.get("email") or dyn.get("customer_email") or ""
     if not email:
@@ -299,9 +303,14 @@ def _build_row(call):
         if found and "quick-carpet-cleaners" not in found.group(0):
             email = found.group(0)
 
+    # Prefer a street address, fall back to the suburb.
     area = (custom.get("address") or custom.get("suburb")
             or dyn.get("customer_suburb") or "")
-    job = custom.get("service") or dyn.get("job_type") or ""
+    if custom.get("address") and custom.get("suburb") \
+            and custom["suburb"].lower() not in custom["address"].lower():
+        area = f"{custom['address']}, {custom['suburb']}"
+
+    job = custom.get("service") or custom.get("job") or dyn.get("job_type") or ""
 
     summary = analysis.get("call_summary") or ""
 
