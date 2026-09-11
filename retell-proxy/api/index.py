@@ -314,12 +314,6 @@ def _build_row(call):
 
     summary = analysis.get("call_summary") or ""
 
-    # Called back: did QCC ring them, or did they come to us?
-    if call.get("call_type") == "web_call":
-        called_back = "n"
-    else:
-        called_back = "y" if call.get("direction") == "outbound" else "n"
-
     # Outcome, best guess, most specific signal first.
     reason = (call.get("disconnection_reason") or "").lower()
     if call.get("in_voicemail"):
@@ -342,6 +336,21 @@ def _build_row(call):
         outcome = "Enquiry only"
     else:
         outcome = ""
+
+    # Called back: does this lead still need a human to ring them? It is a
+    # worklist flag, not a record of who dialled whom — "y" means someone at QCC
+    # still owes this person a call.
+    #
+    # Only two things clear it: a call already handed to a human live, or a pure
+    # information enquiry that left no contact details and asked for nothing.
+    if outcome == "Transferred":
+        called_back = "n"
+    elif outcome == "Enquiry only" and not (name or phone):
+        called_back = "n"
+    elif outcome:
+        called_back = "y"
+    else:
+        called_back = ""
 
     # Delegated to: a guess from who the agent named. Expect Michael to correct it.
     has_jack, has_michael = "Jack" in blob, "Michael" in blob

@@ -59,12 +59,17 @@ Call Summary feeds column G.
 | E | Area/address | Address if the agent got one, else suburb |
 | F | Job details | Service discussed |
 | G | Enquiry summary | Retell's post-call summary |
-| H | Called back y/n | **Guess** — `y` if QCC rang them, `n` for widget calls |
+| H | Called back y/n | **Guess** — does this lead still need a human to ring them. `y` unless the call was handed to a human live, or was a pure enquiry that left no contact details |
 | I | Outcome | **Guess** — Voicemail / No answer / Call failed / Booking requested / Quote requested / Callback requested / Transferred / Enquiry only |
 | J | Delegated to | **Guess** — whoever the agent named in the call |
 | K | Time | Call start, Brisbane |
 | L | Date | Call start, Brisbane |
 | M | *(call id)* | De-duplication key. Hide it if you like; **do not delete it** |
+
+Column H is a **worklist flag, not a record of who dialled whom**. `y` means
+someone at QCC still owes this person a call. Only two things clear it: the call
+was transferred to a human during the call, or it was an information enquiry that
+left no name or number and asked for nothing.
 
 **H, I and J are machine guesses.** The sheet is **append-only** — nothing ever
 edits a row once written — so when Michael or Jack correct one of those cells,
