@@ -1,2 +1,7 @@
 # Build output — regenerate with the dist build, never edit by hand
 dist/
+
+# Secrets — never commit. Real values live in the Vercel project settings.
+.env
+.env.*
+!.env.example
