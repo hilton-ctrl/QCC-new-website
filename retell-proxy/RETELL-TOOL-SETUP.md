@@ -118,9 +118,19 @@ The proxy needs one new variable before any email will send:
 SMTP2GO_API_KEY = api-xxxxxxxxxxxxxxxx
 ```
 
-Created 11 Sept 2026 in the SMTP2GO account (Hilton Holder), described
-**"QCC website lead alerts"**, scoped to `/email/send` only, default rate limit.
-Copy it from **Sending → API Keys** using the Copy button.
+Lives in the SMTP2GO account (Hilton Holder), described **`qcc-email-110926`**,
+scoped to `/email/send` only, default rate limit. Copy it from
+**Sending → API Keys** using the Copy button.
+
+Already set in the Vercel `qcc-retell-proxy` project as a Secret (Production).
+Changing it there requires a **redeploy** to take effect — Vercel says so when
+you save, and it is easy to miss.
+
+Rotated once on 11 Sept 2026 after the first key was exposed in a chat
+transcript. If a key is ever pasted into chat, email, or a commit: create a
+replacement, update Vercel, redeploy, then delete the old key. Verify only one
+key is listed afterwards — a passing send test proves nothing while the old key
+is still alive.
 
 ### Sender domain
 
