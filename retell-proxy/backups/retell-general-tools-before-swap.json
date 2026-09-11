@@ -1,0 +1,88 @@
+[
+  {
+    "sms_sender": {
+      "type": "current_number"
+    },
+    "execution_message_type": "prompt",
+    "execution_message_description": "",
+    "speak_after_execution": true,
+    "name": "send_quote_request",
+    "sms_content": {
+      "type": "inferred",
+      "prompt": "QCC QUOTE REQUEST\nName: {{name}}\nMobile: {{caller_number}}\nService: {{service}}\nSuburb: {{suburb}}\nAddress: {{address}}\nJob size: {{job_size}}\nEmail: {{email}}\nNotes: {{notes}}"
+    },
+    "type": "send_sms",
+    "sms_destination": {
+      "type": "phone_number",
+      "phone_number": "+61484312966"
+    },
+    "speak_during_execution": false
+  },
+  {
+    "sms_sender": {
+      "type": "current_number"
+    },
+    "execution_message_type": "prompt",
+    "execution_message_description": "",
+    "speak_after_execution": true,
+    "name": "send_callback_request",
+    "sms_content": {
+      "type": "inferred",
+      "prompt": "QCC CALLBACK REQUEST\nName: {{name}}\nBest callback number: {{callback_number}}\nReason: {{reason}}"
+    },
+    "type": "send_sms",
+    "sms_destination": {
+      "type": "phone_number",
+      "phone_number": "+61484312966"
+    },
+    "speak_during_execution": false
+  },
+  {
+    "sms_sender": {
+      "type": "current_number"
+    },
+    "execution_message_type": "prompt",
+    "execution_message_description": "",
+    "speak_after_execution": true,
+    "name": "create_booking_request",
+    "sms_content": {
+      "type": "inferred",
+      "prompt": "QCC BOOKING REQUEST\nName: {{name}}\nMobile: {{caller_number}}\nService: {{service}}\nSuburb: {{suburb}}\nPreferred date/time: {{preferred_time}}\nNotes: {{notes}}"
+    },
+    "type": "send_sms",
+    "sms_destination": {
+      "type": "phone_number",
+      "phone_number": "+61484312966"
+    },
+    "speak_during_execution": false
+  },
+  {
+    "execution_message_type": "prompt",
+    "custom_sip_headers": {},
+    "transfer_destination": {
+      "type": "predefined",
+      "number": "+61484312966"
+    },
+    "execution_message_description": "",
+    "speak_after_execution": true,
+    "name": "transfer_to_human",
+    "description": "Transfer the call to a human agent",
+    "ignore_e164_validation": false,
+    "transfer_option": {
+      "type": "cold_transfer",
+      "cold_transfer_mode": "sip_invite",
+      "show_transferee_as_caller": false
+    },
+    "type": "transfer_call",
+    "speak_during_execution": true
+  },
+  {
+    "execution_message_type": "prompt",
+    "execution_message_description": "",
+    "speak_after_execution": true,
+    "name": "end_call",
+    "description": "End the call when user has to leave (like says bye) or you are instructed to do so.",
+    "type": "end_call",
+    "speak_during_execution": true
+  }
+]

@@ -1,7 +1,13 @@
 # Retell tool swap — SMS alerts → email alerts
 
 **Date:** 11 September 2026
-**Status:** temporary. Reverting to SMS once QCC's own Telnyx numbers clear verification.
+**Status:** DONE — applied via the Retell API on 11 Sept 2026. The three tools are
+now custom functions pointing at `/notify`. The dashboard steps below are kept as
+a record of what was configured, not as instructions to follow.
+
+Temporary in the sense that alerts go by email; reverting to SMS once QCC's own
+Telnyx numbers clear verification needs only `ALERT_CHANNEL` in `api/index.py` —
+the tools themselves stay as they are.
 
 ## Why
 
@@ -14,18 +20,17 @@ The three alert tools were `send_sms` with `sms_sender: current_number`:
 Replacing them with custom functions pointing at the Vercel proxy removes Retell's
 dependency on a phone number entirely. The proxy decides how to deliver the alert.
 
-## What to change in the Retell dashboard
+## What was configured
 
-Agent `agent_a3272ed73666ea736352b563bc` ("qcc") → **Functions**.
+On `llm_d80cd36495bc1f7f980679687f19` (version 2), which agent
+`agent_a3272ed73666ea736352b563bc` ("qcc") pins.
 
-**Delete** these three (all type `send_sms`):
+The three `send_sms` tools were replaced by **Custom Function** tools with the
+**same names**, so the agent prompt needed no edits — it already calls these by
+name. `transfer_to_human` and `end_call` were preserved unchanged.
 
-- `send_quote_request`
-- `send_callback_request`
-- `create_booking_request`
-
-**Add** three **Custom Function** tools using the **same names**. Keeping the names
-identical means the agent prompt needs no edits — it already calls these by name.
+The previous tool array is backed up at
+`backups/retell-general-tools-before-swap.json`.
 
 Common settings for all three:
 
