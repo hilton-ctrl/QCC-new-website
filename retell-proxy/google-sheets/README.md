@@ -87,17 +87,28 @@ SHEETS_SHARED_SECRET   = (same value as SHARED_SECRET in the script)
 
 **Then redeploy** — env var changes do not reach a running deployment.
 
-### 3. Retell
+### 3. Retell — DONE 11 Sept 2026
 
-Set the agent's webhook URL to:
+Agent `agent_a3272ed73666ea736352b563bc` → **Webhook Settings** → *Agent Level
+Webhook URL*:
 
 ```
 https://qcc-retell-proxy.vercel.app/retell-webhook
 ```
 
-Agent `agent_a3272ed73666ea736352b563bc` → Webhook settings, or via the API.
-The endpoint accepts `call_started` and `call_ended` and ignores them; only
-`call_analyzed` writes a row.
+Webhook Events has **Call started**, **Call ended** and **Call analyzed** ticked.
+Only `call_analyzed` writes a row; the other two are acknowledged and ignored,
+which is deliberate — returning an error would make Retell retry them.
+
+Retell's own **Test** button beside the URL field confirms reachability.
+
+**This field being empty is the first thing to check if rows stop appearing.**
+It was the reason a dashboard test call produced nothing: every other piece was
+working, but nothing in Retell was calling the webhook.
+
+**Note on test calls:** Retell's *voice* test creates a real call and fires the
+webhook. The text-based LLM playground does not create a call at all, so it will
+never produce a row no matter how things are configured.
 
 ## If rows stop appearing
 
